@@ -113,6 +113,7 @@ setup_args = dict(
         'Programming Language :: Python :: 3.8',
         'Programming Language :: Python :: 3.9',
         'Programming Language :: Python :: 3.10',
+        'Programming Language :: Python :: 3.11',
         'Framework :: Jupyter',
     ],
     python_requires = '>=3.6',
@@ -139,7 +140,6 @@ extras_require = setup_args['extras_require'] = {
         'pytest-tornado',
         'jupyter_server[test]',
         'jsonschema',
-        'mock',
         'notebook',
         'requests',
         'tabulate',  # For profiling

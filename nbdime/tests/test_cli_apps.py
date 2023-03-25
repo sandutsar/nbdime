@@ -605,10 +605,14 @@ def test_git_difftool(git_repo, unique_port, popen_with_terminator):
     for _ in range(3):
         wait_up(url, check=lambda: process.poll() is None)
         # server started
-        r = requests.get(url + '/difftool')
+        s = requests.Session()
+        r = s.get(url + '/difftool')
         r.raise_for_status()
         # close it
-        r = requests.post(url + '/api/closetool', json={'exitCode': 0})
+        r = s.post(url + '/api/closetool', data={
+            'exitCode': 0,
+            '_xsrf': r.cookies['_xsrf']
+        })
         r.raise_for_status()
         time.sleep(0.25)
     # wait for exit
@@ -636,17 +640,24 @@ def test_git_mergetool(git_repo, unique_port, popen_with_terminator):
     url = 'http://127.0.0.1:%i' % port
     wait_up(url, check=lambda: process.poll() is None)
     # server started
-    r = requests.get(url + '/mergetool')
+    s = requests.Session()
+    r = s.get(url + '/mergetool')
     r.raise_for_status()
-    r = requests.post(
+    xsrf = r.cookies['_xsrf']
+    r = s.post(
         url_concat(url + '/api/store', {'outputfilename': 'merge-conflict.ipynb'}),
-        data=json.dumps({
-            'merged': nbformat.v4.new_notebook(),
-        })
+        json={'merged': nbformat.v4.new_notebook()},
+        headers={'X-XSRFToken': xsrf},
     )
     r.raise_for_status()
     # close it
-    r = requests.post(url + '/api/closetool', json={'exitCode': 0})
+    r = s.post(
+        url + '/api/closetool',
+        data={
+            'exitCode': 0,
+            '_xsrf': xsrf,
+        }
+    )
     r.raise_for_status()
     # wait for exit
     process.wait()
@@ -705,10 +716,14 @@ def test_hg_diffweb(hg_repo, unique_port, popen_with_terminator):
     wait_up(url, check=lambda: process.poll() is None)
     for _ in range(3):
         # server started
-        r = requests.get(url + '/difftool')
+        s = requests.Session()
+        r = s.get(url + '/difftool')
         r.raise_for_status()
         # close it
-        r = requests.post(url + '/api/closetool', json={'exitCode': 0})
+        r = s.post(url + '/api/closetool', data={
+            'exitCode': 0,
+            '_xsrf': r.cookies['_xsrf']
+        })
         r.raise_for_status()
         time.sleep(0.25)
     # wait for exit
@@ -732,17 +747,24 @@ def test_hg_mergetool(hg_repo, unique_port, popen_with_terminator):
     url = 'http://127.0.0.1:%i' % unique_port
     wait_up(url, check=lambda: process.poll() is None)
     # server started
-    r = requests.get(url + '/mergetool')
+    s = requests.Session()
+    r = s.get(url + '/mergetool')
     r.raise_for_status()
-    r = requests.post(
+    xsrf = r.cookies['_xsrf']
+    r = s.post(
         url_concat(url + '/api/store', {'outputfilename': 'merge-conflict.ipynb'}),
-        data=json.dumps({
-            'merged': nbformat.v4.new_notebook(),
-        })
+        json={'merged': nbformat.v4.new_notebook()},
+        headers={'X-XSRFToken': xsrf},
     )
     r.raise_for_status()
     # close it
-    r = requests.post(url + '/api/closetool', json={'exitCode': 0})
+    r = s.post(
+        url + '/api/closetool',
+        data={
+            'exitCode': 0,
+            '_xsrf': xsrf
+        }
+    )
     r.raise_for_status()
     # wait for exit
     process.wait()
